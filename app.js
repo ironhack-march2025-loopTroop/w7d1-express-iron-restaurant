@@ -1,0 +1,84 @@
+
+const express = require("express")
+const logger = require('morgan');
+
+const pizzasArr = require("./data/pizzas")
+
+const PORT = 3005;
+
+const app = express()
+
+
+// Make the static files inside of the `public/` folder publicly accessible
+app.use(express.static("public"))
+
+// Setup the request logger to run on each request
+app.use(logger("dev"))
+
+
+// JSON middleware to parse incoming HTTP requests that contain JSON    // <== ADD
+app.use(express.json());
+
+
+
+/**************************/
+/* Examples of middleware */
+/**************************/
+
+function customMiddleware1(req, res, next){
+    console.log("hello 1")
+    next()
+}
+
+function customMiddleware2(req, res, next){
+    console.log("hello 2")
+    next()
+}
+
+app.use(customMiddleware1)
+app.use(customMiddleware2)
+
+
+/**********/
+/* Routes */
+/**********/
+
+// app.get(path, code)
+// app.get(path, function(request, response, next){})
+
+
+// Some methods to send an http response:
+// - res.send()
+// - res.sendFile()
+// - res.json()
+
+
+
+//
+// GET /
+//
+app.get("/", function (req, res, next) {
+    res.sendFile(__dirname + "/views/home.html")
+})
+
+
+//
+// GET /contact
+//
+app.get("/contact", function (req, res, next) {
+    res.sendFile(__dirname + "/views/contact-page.html")
+})
+
+
+//
+// GET /pizzas
+//
+app.get("/pizzas", function(req, res, next){
+    res.json(pizzasArr)
+})
+
+
+
+app.listen(PORT, function () {
+    console.log(`App is listening for requests on port ${PORT}...`)
+})
