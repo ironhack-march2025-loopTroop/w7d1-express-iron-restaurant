@@ -72,9 +72,22 @@ app.get("/contact", function (req, res, next) {
 
 //
 // GET /pizzas
+// GET /pizzas?maxPrice=15
 //
-app.get("/pizzas", function(req, res, next){
-    res.json(pizzasArr)
+app.get("/pizzas", function (req, res, next) {
+
+    const { maxPrice } = req.query;
+
+    if (maxPrice === undefined) {
+        res.json(pizzasArr)
+        return;
+    }
+
+    const filteredPizzas = pizzasArr.filter((pizzaDetails) => {
+        return pizzaDetails.price <= parseFloat(maxPrice);
+    });
+
+    res.json(filteredPizzas)
 })
 
 

@@ -14,8 +14,16 @@ const pizzasArr = [
     {
         id: 3,
         title: "Seafood Pizza",
+        price: 25,
         imageFile: "pizza-seafood.jpg"
-    }
+    },
+
+    {
+        id: 4,
+        title: "Hawaian",
+        price: 20,
+        imageFile: "pizza-seafood.jpg"
+    },
 ];
 
 module.exports = pizzasArr;
