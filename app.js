@@ -4,7 +4,6 @@ const mongoose = require("mongoose");
 const logger = require('morgan');
 
 const Pizza = require("./models/Pizza.model")
-const pizzasArr = require("./data/pizzas");
 
 const PORT = 3005;
 
@@ -31,6 +30,7 @@ mongoose
     .then(x => console.log(`Connected to Mongo! Database name: "${x.connections[0].name}"`))
     .catch(err => console.error("Error connecting to mongo", err));
 
+mongoose.set('runValidators', true); // turn on schema validation for all updates
 
 /**************************/
 /* Examples of middleware */
@@ -78,16 +78,21 @@ app.get("/pizzas", function (req, res, next) {
 
     const { maxPrice } = req.query;
 
-    if (maxPrice === undefined) {
-        res.json(pizzasArr)
-        return;
+    let filter = {}
+
+    if (maxPrice !== undefined) {
+        filter = { price: { $lte: maxPrice } }
     }
 
-    const filteredPizzas = pizzasArr.filter((pizzaDetails) => {
-        return pizzaDetails.price <= parseFloat(maxPrice);
-    });
-
-    res.json(filteredPizzas)
+    Pizza.find(filter)
+        .then((pizzasFromDB) => {
+            res.json(pizzasFromDB)
+        })
+        .catch(error => {
+            console.log("Error getting pizzas from DB...");
+            console.log(error);
+            res.status(500).json({ error: "Failed to get list of pizzas" });
+        });
 })
 
 
@@ -97,16 +102,19 @@ app.get("/pizzas", function (req, res, next) {
 //
 app.get("/pizzas/:pizzaId", function (req, res, next) {
 
-    let { pizzaId } = req.params;
+    const { pizzaId } = req.params;
 
-    pizzaId = parseInt(pizzaId) // convert pizzaId to a number 
-
-    const result = pizzasArr.find((pizzaDetails) => {
-        return pizzaDetails.id === pizzaId;
-    })
-
-    res.json(result);
+    Pizza.findById(pizzaId)
+        .then((pizzaFromDB) => {
+            res.json(pizzaFromDB)
+        })
+        .catch(error => {
+            console.log("Error getting pizza details from DB...");
+            console.log(error);
+            res.status(500).json({ error: "Failed to get pizza details" });
+        });
 })
+
 
 
 // POST /pizzas
@@ -124,6 +132,49 @@ app.post("/pizzas", function (req, res, next) {
             res.status(500).json({ error: "Failed to create a new pizza" });
         })
 })
+
+
+
+//
+// PUT /pizzas/:pizzaId
+//
+app.put("/pizzas/:pizzaId", function (req, res, next) {
+
+    const { pizzaId } = req.params;
+
+    const newDetails = req.body;
+
+    Pizza.findByIdAndUpdate(pizzaId, newDetails, { new: true })
+        .then((pizzaFromDB) => {
+            res.json(pizzaFromDB)
+        })
+        .catch((error) => {
+            console.error("Error updating pizza...");
+            console.error(error);
+            res.status(500).json({ error: "Failed to update a pizza" });
+        });
+})
+
+
+
+//
+// DELETE /pizzas/:pizzaId
+//
+app.delete("/pizzas/:pizzaId", function (req, res, next) {
+
+    const { pizzaId } = req.params;
+
+    Pizza.findByIdAndDelete(pizzaId)
+        .then(response => {
+            res.json(response)
+        })
+        .catch((error) => {
+            console.error("Error deleting pizza...");
+            console.error(error);
+            res.status(500).json({ error: "Failed to delete a pizza" });
+        });
+})
+
 
 
 
