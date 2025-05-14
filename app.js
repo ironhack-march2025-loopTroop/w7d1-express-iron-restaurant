@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const logger = require('morgan');
 
 const Pizza = require("./models/Pizza.model")
+const Cook = require("./models/Cook.model")
 
 const PORT = 3005;
 
@@ -172,6 +173,26 @@ app.delete("/pizzas/:pizzaId", function (req, res, next) {
             console.error("Error deleting pizza...");
             console.error(error);
             res.status(500).json({ error: "Failed to delete a pizza" });
+        });
+})
+
+
+
+//
+// POST /cooks
+//
+app.post("/cooks", function (req, res, next) {
+
+    const newCook = req.body;
+
+    Cook.create(newCook)
+        .then((cookFromDB) => {
+            res.status(201).json(cookFromDB)
+        })
+        .catch(error => {
+            console.log("Error creating a new cook in the DB...");
+            console.log(error);
+            res.status(500).json({ error: "Failed to create a new cook" });
         });
 })
 
