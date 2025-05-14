@@ -1,8 +1,10 @@
 
 const express = require("express")
+const mongoose = require("mongoose");
 const logger = require('morgan');
 
-const pizzasArr = require("./data/pizzas")
+const Pizza = require("./models/Pizza.model")
+const pizzasArr = require("./data/pizzas");
 
 const PORT = 3005;
 
@@ -20,17 +22,26 @@ app.use(logger("dev"))
 app.use(express.json());
 
 
+/*********************/
+/* Connect to the DB */
+/*********************/
+
+mongoose
+    .connect("mongodb://127.0.0.1:27017/express-restaurant")
+    .then(x => console.log(`Connected to Mongo! Database name: "${x.connections[0].name}"`))
+    .catch(err => console.error("Error connecting to mongo", err));
+
 
 /**************************/
 /* Examples of middleware */
 /**************************/
 
-function customMiddleware1(req, res, next){
+function customMiddleware1(req, res, next) {
     console.log("hello 1")
     next()
 }
 
-function customMiddleware2(req, res, next){
+function customMiddleware2(req, res, next) {
     console.log("hello 2")
     next()
 }
@@ -42,17 +53,6 @@ app.use(customMiddleware2)
 /**********/
 /* Routes */
 /**********/
-
-// app.get(path, code)
-// app.get(path, function(request, response, next){})
-
-
-// Some methods to send an http response:
-// - res.send()
-// - res.sendFile()
-// - res.json()
-
-
 
 //
 // GET /
@@ -95,19 +95,35 @@ app.get("/pizzas", function (req, res, next) {
 //
 // GET /pizzas/:pizzaId
 //
-app.get("/pizzas/:pizzaId", function(req, res, next){
+app.get("/pizzas/:pizzaId", function (req, res, next) {
 
-    let {pizzaId} = req.params;
+    let { pizzaId } = req.params;
 
     pizzaId = parseInt(pizzaId) // convert pizzaId to a number 
-    
+
     const result = pizzasArr.find((pizzaDetails) => {
         return pizzaDetails.id === pizzaId;
     })
-    
+
     res.json(result);
 })
 
+
+// POST /pizzas
+app.post("/pizzas", function (req, res, next) {
+
+    const newPizza = req.body;
+
+    Pizza.create(newPizza)
+        .then((pizzaFromDB) => {
+            res.status(201).json(pizzaFromDB)
+        })
+        .catch((error) => {
+            console.log("Error creating a new pizza in the DB...");
+            console.log(error);
+            res.status(500).json({ error: "Failed to create a new pizza" });
+        })
+})
 
 
 
